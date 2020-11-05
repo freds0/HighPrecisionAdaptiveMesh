@@ -1,0 +1,227 @@
+DESCRIPTION
+===========
+
+mpfr::real is a C++ interface to the GNU MPFR library version 3.0.0 or later.
+The whole functionality is contained in a single header file ("real.hpp").
+
+The class mpfr::real provides a floating point type with arbitrary precision.
+It accepts two template arguments, of which the second one is optional:
+The first argument is the precision of the mantissa (in bits) and the second
+argument is an MPFR rounding mode (default: MPFR_RNDN).  mpfr::real provides
+all the assigment/arithmetic/comparison operators available for other floating
+point types, such as double, the set of functions from <math.h> of POSIX 2008,
+std::istream operator>> and std::ostream operator<<, and some additional
+functions.  Furthermore, a specialization of std::numeric_limits is provided
+for mpfr::real.
+
+An additional header "mpfr_header_wrapper.hpp" can be included *before*
+"real.hpp".  If so, any MPFR library function called will be output on stderr
+(or a user-defined output).  This allows to debug mpfr::real and its efficiency.
+
+CODE EXAMPLE
+============
+
+// //////////////// BEGIN OF EXAMPLE //////////////////////
+#include "real.hpp"
+
+int main () {
+  mpfr::real<4096> a = "1.23456789";
+  mpfr::real<4096> b = 5.;
+  std::cout << sin(2 * pow(a, b)) << std::endl;
+
+  return 0;
+}
+// ///////////////// END OF EXAMPLE ///////////////////////
+
+The calculation is done with mpfr::real's with 4096 bits of precision (see the
+template argument of mpfr::real).  The rounding used in the calculation
+defaults to MPFR_RNDN.  An alternative rounding supported by the MPFR library
+could have been set as second template argument of mpfr::real.
+
+The variable "a" is initialized from the char[] "1.23456789".  If the quotation
+marks had been omitted, the token 1.23456789 would have been interpreted as
+double and "a" would have been initialized from that double.  This would have
+resulted in a truncation of precision of the number 1.23456789 to the precision
+of a double (e.g., 53 bits) and there would have been a loss of precision in
+the initialization of "a".
+
+The variable "b" is initialized from the double 5., which has an exact
+representation.  Hence, there is no loss in precision.   The last line
+calculates "a" to the power of "b", multiplies it with the int 2 using the
+optimized multiplication function of MPFR's data type with int's, and
+calculates the sine of the result.  The result type of the whole calculation is
+a mpfr::real<4096>, which is finally output.
+
+GNU AND INTEL C++ COMPILERS UNDER LINUX
+=======================================
+
+A. Prerequisites
+----------------
+
+mpfr::real depends on the following libraries:
+- the GNU MPFR library (http://www.mpfr.org/), version >= 3.0
+- the GMP library (http://gmplib.org/) or, as an alternative, the MPIR library
+  (http://mpir.org/)
+
+Both the MPFR and the GMP library are included with supported versions in any
+recent (desktop or server) linux distribution, so it is easiest to use the
+packages shipped with the distribution.  Make sure to also install the header
+files, which are typically contained in packages named "libmpfr-dev",
+"libmpfr-devel", or similarly.
+
+B. Usage
+--------
+
+Simply include the header "real.hpp" into your source files:
+#include <real.hpp>
+
+The source file should compile with the parameters "-Wall -ansi [-pedantic]"
+enforcing strict standard conformance without any warnings or errors.  (The
+"-pedantic" parameter is only supported by G++.)
+
+Make sure to link your binary against the GNU MPFR library.  This can be
+done by passing "-lmpfr" to the compiler.
+
+A complete command line could look like this:
+$ g++ -O2 -Wall -ansi -pedantic -I<path to real.hpp> -o<executable> \
+  <source file>.cpp -lmpfr
+
+C. Testing
+----------
+
+The files "real_operator_test.cpp" and "real_function_test.cpp" contain tests
+for large parts of the functionality of the operators and mathematical
+functions, respectively.  For G++ and ICC, these test programs must compile with
+parameters "-O2 -Wall -ansi [-pedantic]" without producing any warnings or
+errors.  The test programs must *exactly* produce the same output as delivered
+with this package.
+
+To run the operator tests, follow these steps:
+$ g++ -O2 -Wall -ansi -pedantic -I<path to real.hpp> -oreal_operator_test \
+  real_operator_test.cpp -lmpfr
+$ ./real_operator_test > real_operator_test.out
+$ diff real_operator_test.out real_operator_test.txt
+
+To run the function tests, follow these steps:
+$ g++ -O2 -Wall -ansi -pedantic -I<path to real.hpp> -oreal_function_test \
+  real_function_test.cpp -lmpfr
+$ ./real_function_test > real_function_test.out
+$ diff real_function_test.out real_function_test.txt
+
+NOTE: Compiling the tests might take quite a while and consume a lot of memory.
+It is recommended to compile the tests under a system with at least 2GB of RAM.
+
+MICROSOFT VISUAL C++ UNDER WINDOWS
+==================================
+
+0. Acknowledgement
+------------------
+
+This installation procedure has been worked out by Brian Gladman and works
+with the C++ compiler from Microsoft's Visual Studio 2010 (VC++).  Many thanks
+to Brian for his efforts!
+
+A. Prerequisites
+----------------
+
+You have to get the following packages:
+- the VC++ version of YASM (e.g., as binary file: "vsyasm.exe")
+- the sources of the MPIR library (http://mpir.org/); this is an alternative to
+  the GMP library required by the MPFR library
+- the sources of the MPFR library (http://www.mpfr.org/), version >= 3.0
+- Brian Gladman's build files for the MPFR library
+  (http://gladman.plushost.co.uk/oldsite/computing/mpfr-3.0.0.build.vc10.zip)
+
+Put "vsyasm.exe" into the directory with the tools of your VC++ installation.
+
+The MPIR library already contains VC++ build projects and you can compile it
+in the Visual Studio IDE.
+
+Finally, to compile the MPFR library, follow the instructions in the file
+readme.vc10.txt from Brian Gladman's build files.
+
+B. Usage
+--------
+
+It is easiest to copy the previously built MPIR and MPFR library files (e.g.,
+from the respective "lib\Win32\Debug" directories), their header files (*.h
+from the base directories of the source trees), and real.hpp into a common
+directory.
+
+In your projects properties, add this directory to the include directories
+(right click on project in the solution explorer, select properties and
+then navigate to "Configuration Properties" -> "VC++ Directories" ->
+"Include Directories") and similarly to the library directories
+("Configuration Properties" -> "VC++ Directories" -> "Library Directories").
+
+Now, add "mpir.lib" and "mpfr.lib" to the linker input
+("Configuration Properties" -> "Linker" -> "Input" ->
+"Additional Dependencies").
+
+Finally, include real.hpp into your source file:
+#include <real.hpp>
+
+C. Testing
+----------
+
+The files "real_operator_test.cpp" and "real_function_test.cpp" contain tests
+for large parts of the functionality of the operators and mathematical
+functions, respectively.  For VC++, the char[] and GMP/MPFR data types mpf_t,
+mpq_t, mpz_t, and mpfr_t are disabled in the tests (see also
+"D. Additional Notes" below).  Additionally, only functions from the <cmath>
+header according to C++03 are tested for non-mpfr::real arguments.  The
+programs must compile without any warnings or errors with optimizations turned
+on ("/Ox").
+
+The output of the compiled programs must be identical to the output in the
+"*_vc++.txt" files.
+
+NOTE: Compiling the tests might take extremely long and consume a lot of memory.
+It is recommended to compile the tests under a system with at least 2GB of RAM.
+
+D. Additional Notes
+-------------------
+
+There is only a limited support for VC++ 2010.
+
+1. The char[] type does not work with mpfr::real.  E.g., writing
+     mpfr::real<1024> r = "1.234";
+   will produce an error.  As a workaround, the string literal can be cast to
+   char* or std::string.  E.g., the following will produce the expected result:
+     mpfr::real<1024> r = std::string("1.234");
+
+2. The GMP and MPFR data types mpf_t, mpq_t, mpz_t, and mpfr_t do not work.
+   This problem is similar to the char[] problem.  As a workaround, variables
+   of these types can be cast to mpf_ptr, mpq_ptr, mpz_ptr, or mpfr_ptr,
+   respectively, before passing to an mpfr::real operator or function.
+
+3. mpfr::real's member _x (which is of type mpfr_t) is public.  However, a
+   direct manipulation is strongly discouraged.
+
+SUCCESSFUL TESTS
+================
+
+Version 0.0.9-alpha of mpfr::real has been successfully tested with:
+g++ 4.4.5  / mpfr 3.0.0 / gmp 4.3.2
+g++ 4.5.3  / mpfr 3.0.1 / gmp 5.0.2
+g++ 4.6.1  / mpfr 3.1.0 / gmp 5.0.2
+icc 12.1.0 / mpfr 3.0.0 / gmp 4.3.2
+VC++ 2010  / mpfr 3.0.1 / mpir 2.4.0
+
+COPYRIGHT/LICENSE
+=================
+
+Copyright 2010,2011,2012 Christian Schneider <software(at)chschneider(dot)eu>
+
+mpfr::real is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3 of the License, NOT any later
+version.
+
+mpfr::real is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with mpfr::real.  If not, see <http://www.gnu.org/licenses/>.
